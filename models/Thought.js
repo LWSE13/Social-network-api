@@ -18,8 +18,27 @@ const ThoughtSchema = new Schema(
             type: String,
             required: 'Please enter a username'
         },
+
+        reactions: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Reaction'
+            }
+        ]
+    },
+
+    {
+        toJSON: {
+            virtuals: true
+        }
     }
-)
+);
+
+ThoughtSchema
+.virtual('reactionCount')
+.get(function() {
+        return this.reactions.length;
+});
 
 const Thought = model('Thought', ThoughtSchema);
 
