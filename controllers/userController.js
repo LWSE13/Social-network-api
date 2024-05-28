@@ -29,7 +29,7 @@ module.exports = {
             .select('-__v')
             .populate('thoughts')
             .populate('friends')
-            
+
             if (!userData) {
                 return res.status(404).json({ message: 'No user found with this id' })
             }
@@ -68,6 +68,40 @@ module.exports = {
 
             await Thought.deleteMany({ _id: { $in: userData.thoughts } });
             res.json({ message: 'User and associated thoughts have been deleted' });
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({message: 'the following error occured', err})
+        }
+    },
+
+    async addFriend (req, res) {
+        try {
+            const userData = await User.findOneAndUpdate(
+                { _id: req.params.userId },
+                { $addToSet: { friends: req.params.friendId } },
+                { new: true }
+            )
+            if (!userData) {
+                return res.status(404).json({ message: 'No user found with this id' })
+            }
+            res.json(userData)
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({message: 'the following error occured', err})
+        }
+    },
+
+    async deleteFriend (req, res) {
+        try {
+            const userData = await User.findOneAndUpdate(
+                { _id: req.params.userId },
+                { $pull: { friends: req.params.friendId } },
+                { new: true }
+            )
+            if (!userData) {
+                return res.status(404).json({ message: 'No user found with this id' })
+            }
+            res.json(userData)
         } catch (err) {
             console.log(err)
             res.status(500).json({message: 'the following error occured', err})
