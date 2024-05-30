@@ -1,4 +1,5 @@
 const { User, Thought } = require('../models');
+const { get } = require('../models/Reaction');
 
 module.exports = {
     async createThought (req, res) {
@@ -30,4 +31,47 @@ module.exports = {
             res.status(500).json({message: 'the following error occured', err})
         }
     },
+
+    async getThoughtById (req, res) {
+        try {
+            const thoughtData = await Thought.findOne({ _id: req.params.thoughtId })
+            .select('-__v')
+            res.json(thoughtData)
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({message: 'the following error occured', err})
+        }
+    },
+
+    async updateThought (req, res) {
+        try {
+            const thoughtData = await Thought.findOneAndUpdate(
+                { _id: req.params.thoughtId },
+                { $set: req.body },
+                { new: true, runValidators: true }
+            );
+            if (!thoughtData) {
+                return res.status(404).json({ message: 'No thought found with this id' });
+            }
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({message: 'the following error occured', err})
+        }
+    },
+
+    async deleteThought (req, res) {
+        try {
+            const thoughtData = await Thought.findOneAndDelete({ _id: req.params.thoughtId });
+            if (!thoughtData) {
+                return res.status(404).json({ message: 'No thought found with this id' });
+            }
+            const associatedUser = await User.findOneAndUpdate(
+                { thoughts: req.params.thoughtId },
+                { $pull: { thoughts: req.params.thoughtId } }
+            );
+        } catch (err) {
+            console.log(err)
+            res.status(500).json({message: 'the following error occured', err})
+        }
+    }
 }
